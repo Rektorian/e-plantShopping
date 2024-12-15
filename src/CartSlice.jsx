@@ -7,13 +7,23 @@ export const CartSlice = createSlice({
   },
   reducers: {
     addItem: (state, action) => {
-    
+      const { name, image, cost } = action.payload;
+      const existingItem = state.items.find(item => item.name === name);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        state.items.push({ name, image, cost, quantity: 1 });
+      }
     },
     removeItem: (state, action) => {
+      state.items = state.items.filter(item => item.name !== action.payload.name); // .filter(): A JavaScript array method that creates a new array containing only the elements for which the callback function returns true.
     },
     updateQuantity: (state, action) => {
-
-    
+      const { name, quantity } = action.payload;
+      const existingItem = state.items.find(item => item.name === name);
+      if (existingItem) {
+        existingItem.quantity = quantity;
+      }
     },
   },
 });

@@ -1,9 +1,15 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
+import { useSelector, useDispatch } from 'react-redux';
+import { addItem, removeItem} from "./CartSlice";
+
 function ProductList() {
-    const [showCart, setShowCart] = useState(false); 
+    const dispatch = useDispatch();
+    const cart = useSelector(state => state.cart.items);
+    const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
+    const [addedToCart, setAddedToCart] = useState({}); // initializes the "addedToCart" state variable to an empty object
 
     const plantsArray = [
         {
@@ -99,7 +105,7 @@ function ProductList() {
                 },
                 {
                     name: "Marigold",
-                    image:"https://cdn.pixabay.com/photo/2022/02/22/05/45/marigold-7028063_1280.jpg",
+                    image: "https://cdn.pixabay.com/photo/2022/02/22/05/45/marigold-7028063_1280.jpg",
                     description: "Natural insect repellent, also adds color to the garden.",
                     cost: "$8"
                 },
@@ -212,69 +218,130 @@ function ProductList() {
             ]
         }
     ];
-   const styleObj={
-    backgroundColor: '#4CAF50',
-    color: '#fff!important',
-    padding: '15px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignIems: 'center',
-    fontSize: '20px',
-   }
-   const styleObjUl={
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '1100px',
-   }
-   const styleA={
-    color: 'white',
-    fontSize: '30px',
-    textDecoration: 'none',
-   }
-   const handleCartClick = (e) => {
-    e.preventDefault();
-    setShowCart(true); // Set showCart to true when cart icon is clicked
-};
-const handlePlantsClick = (e) => {
-    e.preventDefault();
-    setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
-    setShowCart(false); // Hide the cart when navigating to About Us
-};
+    const styleObj = {
+        backgroundColor: '#4CAF50',
+        color: '#fff!important',
+        padding: '15px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignIems: 'center',
+        fontSize: '20px',
+    }
+    const styleObjUl = {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '1100px',
+    }
+    const styleA = {
+        color: 'white',
+        fontSize: '30px',
+        textDecoration: 'none',
+    }
+    const handleCartClick = (e) => {
+        e.preventDefault(); // // The code `e.preventDefault();` is used to prevent the default behavior of the event that triggered it. In this case, it is used to prevent the form from being submitted when the button is clicked. This is useful when you want to handle the form submission manually using JavaScript or jQuery.
+        setShowCart(true); // Set showCart to true when cart icon is clicked
+    };
+    const handlePlantsClick = (e) => {
+        e.preventDefault();
+        setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
+        setShowCart(false); // Hide the cart when navigating to About Us
+    };
 
-   const handleContinueShopping = (e) => {
-    e.preventDefault();
-    setShowCart(false);
-  };
+    const handleContinueShopping = (e) => {
+        e.preventDefault();
+        setShowCart(false);
+    };
+
+    const handleAddToCart = (plant) => {
+        /** 
+         * Dispatch Action: This line calls dispatch with the action addItem(plant).
+         * Redux Action: This typically means that you are using Redux for state management, 
+         * where dispatch is used to send actions to the Redux store. The addItem function is likely an action creator that returns 
+         * an action object to add the plant to the cart in the Redux store.
+        */
+        dispatch(addItem(plant));
+        /**
+         * State Update Function: setAddedToCart is called to update the addedToCart state.
+         * Previous State: The function takes the previous state prevState as an argument.
+         * Spread Operator: The spread operator ...prevState is used to create a new state object that includes all the properties of the previous state.
+         * New Property: A new property [plant.name]: true is added to the state object. This uses the plant.name as the key, and sets its value to true, indicating that this plant has been added to the cart.
+         */
+        setAddedToCart((prevState) => ({
+            ...prevState,
+            [plant.name]: true,
+        }));
+    };
+
+    /**
+    * Handle situation when item is removed from cart -> reset ""Added to Cart" back 
+    * to "Add to Cart"
+    */
+    const handleRemoveFromCart = (plant) => {
+        dispatch(removeItem(plant));
+        setAddedToCart((prevState) => ({
+            ...prevState,
+            [plant.name]: false,
+        }));
+    };
+
+    const countItemsInCart = () => {
+        const itemsCount = cart.reduce((total, item) => total + item.quantity, 0);
+        return itemsCount;
+      };
+
+
     return (
         <div>
-             <div className="navbar" style={styleObj}>
-            <div className="tag">
-               <div className="luxury">
-               <img src="https://cdn.pixabay.com/photo/2020/08/05/13/12/eco-5465432_1280.png" alt="" />
-               <a href="/" style={{textDecoration:'none'}}>
-                        <div>
-                    <h3 style={{color:'white'}}>Paradise Nursery</h3>
-                    <i style={{color:'white'}}>Where Green Meets Serenity</i>
+            <div className="navbar" style={styleObj}>
+                <div className="tag">
+                    <div className="luxury">
+                        <img src="https://cdn.pixabay.com/photo/2020/08/05/13/12/eco-5465432_1280.png" alt="" />
+                        <a href="/" style={{ textDecoration: 'none' }}>
+                            <div>
+                                <h3 style={{ color: 'white' }}>Paradise Nursery</h3>
+                                <i style={{ color: 'white' }}>Where Green Meets Serenity</i>
+                            </div>
+                        </a>
                     </div>
-                    </a>
+
                 </div>
-              
+                <div style={styleObjUl}>
+                    <div> <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a></div>
+                    <div> <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><span className="cart_quantity_count">{countItemsInCart()}</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68"><rect width="156" height="156" fill="none"></rect><circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle><path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="mainIconPathAttribute"></path></svg></h1></a></div>
+                </div>
             </div>
-            <div style={styleObjUl}>
-                <div> <a href="#" onClick={(e)=>handlePlantsClick(e)} style={styleA}>Plants</a></div>
-                <div> <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68"><rect width="156" height="156" fill="none"></rect><circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle><path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="mainIconPathAttribute"></path></svg></h1></a></div>
-            </div>
+            {/**The code is a conditional rendering that displays either the product grid or the cart item based on the value of the 'showCart' variable.
+             * If 'showCart' is false, the code renders the product grid. It maps through the 'plantsArray' and displays each category and its corresponding plants. Each plant is rendered as a 'product-card' with its name, image, description, price, and an 'Add to Cart' button. When the 'Add to Cart' button is clicked, the 'handleAddToCart' function is called with the plant object as an argument.
+               If 'showCart' is true, the code renders the 'CartItem' component. The 'CartItem' component likely handles the display and functionality of the cart item. It passes the 'handleContinueShopping' function as a prop, which can be used to handle the logic when the user clicks on the 'Continue Shopping' button in the cart item. */}
+            {!showCart ? (
+                <div className="product-grid">
+                    {plantsArray.map((category, index) => (
+                        <div key={index}>
+                            <h1><div>{category.category}</div></h1>
+                            <div className='product-list'>
+                                {category.plants.map((plant, plantIndex) => (
+                                    <div className="product-card" key={plantIndex}>
+                                        <div className='product-title'>{plant.name}</div>
+                                        <img className="product-image" src={plant.image} alt={plant.name} />
+                                        <div>{plant.description}</div>
+                                        <div className='product-price'>{plant.cost}</div>
+                                        {/* Explanation:
+                                        => conditional name for the className attribute, depending on if the product was already added or not
+                                        => The disabled attribute in the element is used to disable the button when it is clicked. 
+                                        In this case, it is checking if the addedToCart object has a property with the name of the plant, and if it does, 
+                                        the button will be disabled. */}
+                                        <button className={`product-button ${addedToCart[plant.name] ? 'added-to-cart' : ''}`} onClick={() => handleAddToCart(plant)} disabled={addedToCart[plant.name]}> {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <CartItem onContinueShopping={handleContinueShopping} onRemoveFromCart={handleRemoveFromCart} />
+            )}
         </div>
-        {!showCart? (
-        <div className="product-grid">
-
-
-        </div>
- ) :  (
-    <CartItem onContinueShopping={handleContinueShopping}/>
-)}
-    </div>
     );
 }
 
